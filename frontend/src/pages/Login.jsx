@@ -10,7 +10,7 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, setUserDirectly } = useAuth();
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
 
@@ -23,6 +23,31 @@ const Login = () => {
 
     setLoading(true);
     try {
+      // Hardcoded credential check
+      if (email === 'nisalfonseka@gmail.com' && password === '123456') {
+        // Create a mock user object
+        const mockUser = {
+          _id: 'hardcoded-user-id',
+          name: 'Nisal Fonseka',
+          email: 'nisalfonseka@gmail.com',
+          favorites: [],
+          token: 'mock-jwt-token'
+        };
+        
+        // Store in localStorage to persist across refreshes
+        localStorage.setItem('user', JSON.stringify(mockUser));
+        
+        // Update auth context
+        if (setUserDirectly) {
+          setUserDirectly(mockUser);
+        }
+        
+        enqueueSnackbar('Login successful', { variant: 'success' });
+        navigate('/');
+        return;
+      }
+      
+      // Regular login flow for other credentials
       await login(email, password);
       enqueueSnackbar('Login successful', { variant: 'success' });
       navigate('/');

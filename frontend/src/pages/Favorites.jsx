@@ -42,7 +42,7 @@ const Favorites = () => {
   useEffect(() => {
     setLoading(true);
     axios
-      .get('http://localhost:5555/api/countries')
+      .get('https://restcountries.com/v3.1/all')
       .then((response) => {
         setAllCountries(response.data);
         setLoading(false);

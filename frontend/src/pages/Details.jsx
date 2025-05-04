@@ -32,7 +32,7 @@ const Details = () => {
   useEffect(() => {
     setLoading(true);
     axios
-      .get(`http://localhost:5555/api/countries/code/${code}`)
+      .get(`https://restcountries.com/v3.1/alpha/${code}`)
       .then((response) => {
         if (response.data && response.data.length > 0) {
           setCountry(response.data[0]);

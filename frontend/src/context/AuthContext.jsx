@@ -46,6 +46,11 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Add setUserDirectly function
+  const setUserDirectly = (userData) => {
+    setUser(userData);
+  };
+
   // Login user
   const login = async (email, password) => {
     try {
@@ -79,27 +84,31 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Sync favorites with server
-  const syncFavorites = async (favorites) => {
-    if (!user) return;
+  // Update the syncFavorites function
+const syncFavorites = async (favorites) => {
+  if (!user) return;
+  
+  // Update local user data immediately regardless of backend success
+  const updatedUser = { ...user, favorites };
+  localStorage.setItem('worldExplorerUser', JSON.stringify(updatedUser));
+  setUser(updatedUser);
+  
+  // Try to sync with backend if available
+  try {
+    const config = {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${user.token}`,
+      },
+    };
     
-    try {
-      const config = {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${user.token}`,
-        },
-      };
-      
-      await axios.put(`${API_URL}favorites`, { favorites }, config);
-      
-      // Update local user data
-      const updatedUser = { ...user, favorites };
-      localStorage.setItem('worldExplorerUser', JSON.stringify(updatedUser));
-      setUser(updatedUser);
-    } catch (error) {
-      console.error('Error syncing favorites:', error);
-    }
-  };
+    // Added timeout to prevent long waits for unavailable backend
+    await axios.put(`${API_URL}favorites`, { favorites }, config, { timeout: 3000 });
+  } catch (error) {
+    console.log('Backend sync unavailable, using local storage only');
+    // We don't show an error to the user since we've already updated local storage
+  }
+};
 
   return (
     <AuthContext.Provider
@@ -111,6 +120,7 @@ export const AuthProvider = ({ children }) => {
         logout,
         syncFavorites,
         isAuthenticated: !!user,
+        setUserDirectly
       }}
     >
       {children}

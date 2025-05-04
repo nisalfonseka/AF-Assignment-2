@@ -42,43 +42,44 @@ const Home = () => {
     localStorage.setItem('favoriteCountries', JSON.stringify(favorites));
   }, [favorites]);
 
-  useEffect(() => {
-    setLoading(true);
-    // Fetching from backend API
-    axios
-      .get('http://localhost:5555/api/countries')
-      .then((response) => {
-        setCountries(response.data);
+  // In Home.jsx, replace the current axios call:
+useEffect(() => {
+  setLoading(true);
+  // Direct call to RestCountries API instead of going through backend
+  axios
+    .get('https://restcountries.com/v3.1/all')
+    .then((response) => {
+      setCountries(response.data);
+      
+      // Extract unique regions (same logic works)
+      const regions = [...new Set(response.data.map(country => country.region))].filter(Boolean).sort();
+      setUniqueRegions(regions);
 
-        // Extract unique regions
-        const regions = [...new Set(response.data.map(country => country.region))].filter(Boolean).sort();
-        setUniqueRegions(regions);
-
-        // Extract unique languages
-        const languagesMap = new Map();
-        response.data.forEach(country => {
-          if (country.languages) {
-            Object.entries(country.languages).forEach(([code, name]) => {
-              if (!languagesMap.has(code)) {
-                languagesMap.set(code, name);
-              }
-            });
-          }
-        });
-        // Sort languages by name
-        const sortedLanguages = [...languagesMap.entries()]
-          .map(([code, name]) => ({ code, name }))
-          .sort((a, b) => a.name.localeCompare(b.name));
-        setUniqueLanguages(sortedLanguages);
-
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error('Error fetching countries:', error);
-        enqueueSnackbar('Failed to fetch countries', { variant: 'error' });
-        setLoading(false);
+      // Extract unique languages (same logic works)
+      const languagesMap = new Map();
+      response.data.forEach(country => {
+        if (country.languages) {
+          Object.entries(country.languages).forEach(([code, name]) => {
+            if (!languagesMap.has(code)) {
+              languagesMap.set(code, name);
+            }
+          });
+        }
       });
-  }, [enqueueSnackbar]);
+      // Sort languages by name
+      const sortedLanguages = [...languagesMap.entries()]
+        .map(([code, name]) => ({ code, name }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+      setUniqueLanguages(sortedLanguages);
+
+      setLoading(false);
+    })
+    .catch((error) => {
+      console.error('Error fetching countries:', error);
+      enqueueSnackbar('Failed to fetch countries', { variant: 'error' });
+      setLoading(false);
+    });
+}, [enqueueSnackbar]);
 
   // Toggle favorite status for a country
   const toggleFavorite = useCallback((countryCode) => {
